@@ -1,0 +1,1150 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AJ Solutions · QC Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+:root {
+  --bg: #FFFFFF;
+  --bg-2: #F8FAFC;
+  --bg-3: #F1F5F9;
+  --border: #E2E8F0;
+  --border-hi: #CBD5E1;
+  --primary: #0EA5E9;
+  --primary-dark: #0284C7;
+  --primary-bg: #F0F9FF;
+  --primary-border: #BAE6FD;
+  --primary-text: #0369A1;
+  --text: #0F172A;
+  --text-2: #475569;
+  --text-3: #64748B;
+  --text-4: #94A3B8;
+  --ok: #16A34A;
+  --ok-bg: #F0FDF4;
+  --ok-border: #BBF7D0;
+  --warn: #0D9488;
+  --warn-bg: #F0FDFA;
+  --warn-border: #5EEAD4;
+  --bad: #0C4A6E;
+  --bad-bg: #E0F2FE;
+  --bad-border: #7DD3FC;
+  --font-sans: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --r: 6px;
+  --r-sm: 4px;
+  --r-lg: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg-2); font-family: var(--font-sans); color: var(--text); height: 100%; }
+
+.dash {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 52px 1fr;
+  min-height: 100vh;
+  background: var(--bg);
+  max-width: 1600px;
+  margin: 0 auto;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+.top-bar {
+  grid-column: 1 / -1;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.brand-block { display: flex; align-items: center; gap: 10px; }
+.logo-mark {
+  width: 28px; height: 28px;
+  background: var(--primary);
+  border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+  color: #fff; letter-spacing: 0.05em; flex-shrink: 0;
+}
+.brand-text { display: flex; flex-direction: column; }
+.brand-name { font-size: 13px; font-weight: 700; letter-spacing: 0.03em; color: var(--text); line-height: 1.2; }
+.brand-sub { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; color: var(--text-3); text-transform: uppercase; line-height: 1.2; }
+.divider { width: 1px; height: 20px; background: var(--border); }
+.status-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  background: var(--primary-bg); border: 1px solid var(--primary-border);
+  border-radius: 100px; font-family: var(--font-mono); font-size: 11px;
+  font-weight: 600; color: var(--primary-text); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--primary); animation: blink 2s ease-in-out infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+.nav-link {
+  display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px;
+  font-size: 12px; font-weight: 500; color: var(--text-2); text-decoration: none;
+  border: 1px solid var(--border); border-radius: var(--r-sm); transition: all 0.12s;
+  letter-spacing: 0.01em;
+}
+.nav-link:hover { background: var(--bg-3); color: var(--text); border-color: var(--border-hi); }
+.nav-link svg { width: 11px; height: 11px; }
+.clock-block { text-align: right; }
+.clock { font-family: var(--font-mono); font-size: 20px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1; }
+.date-str { font-size: 10px; font-weight: 500; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 3px; }
+
+/* Left panel */
+.left-panel { background: var(--bg-2); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+.panel-title {
+  padding: 12px 14px 8px;
+  font-size: 10px; font-weight: 600; color: var(--text-3);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 5px; border-bottom: 1px solid var(--border);
+}
+.panel-title svg { width: 11px; height: 11px; }
+.floor-tabs { display: flex; border-bottom: 1px solid var(--border); }
+.floor-tab {
+  flex: 1; padding: 8px 4px; font-size: 10px; font-weight: 600; text-align: center;
+  cursor: pointer; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.12s;
+}
+.floor-tab:hover { color: var(--text-2); }
+.floor-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.line-list { padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; flex: 1; }
+.line-list::-webkit-scrollbar { width: 3px; }
+.line-list::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+.line-card {
+  padding: 8px 10px; border-radius: var(--r-sm); cursor: pointer;
+  transition: background 0.1s; border: 1px solid var(--border); position: relative;
+  background: var(--bg);
+}
+.line-card:hover { background: var(--bg-3); border-color: var(--border-hi); }
+.line-card.active { background: var(--primary-bg); border-color: var(--primary-border); }
+.line-card.active::before {
+  content: ''; position: absolute; left: -1px; top: 6px; bottom: 6px;
+  width: 2px; background: var(--primary); border-radius: 1px;
+}
+.lc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.lc-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.lc-rate {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  padding: 1px 6px; border-radius: 3px; font-variant-numeric: tabular-nums; border: 1px solid;
+}
+.rate-ok { background: var(--ok-bg); color: var(--ok); border-color: var(--ok-border); }
+.rate-warn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-border); }
+.rate-bad { background: var(--bad-bg); color: var(--bad); border-color: var(--bad-border); }
+.rate-none { background: var(--bg-3); color: var(--text-4); border-color: var(--border); }
+.lc-counts { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); }
+.lc-bar { height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; margin-top: 5px; }
+.lc-bar-fill { height: 100%; border-radius: 1px; transition: width 0.4s ease; }
+
+/* Main panel */
+.main-panel { display: flex; flex-direction: column; gap: 12px; padding: 16px; overflow-y: auto; }
+.tab-bar { display: flex; gap: 2px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.main-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; font-size: 12px; font-weight: 600;
+  color: var(--text-3); cursor: pointer; background: none; border: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; letter-spacing: 0.02em;
+  transition: color 0.12s, border-color 0.12s;
+}
+.main-tab:hover { color: var(--text-2); }
+.main-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.main-tab svg { width: 13px; height: 13px; }
+
+/* KPI row */
+.kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.kpi {
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-lg);
+  padding: 12px 14px; border-left: 3px solid var(--border);
+}
+.kpi.ok { border-left-color: var(--ok); }
+.kpi.warn { border-left-color: var(--warn); }
+.kpi.danger { border-left-color: var(--bad); }
+.kpi-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.kpi-label { font-size: 10px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em; }
+.kpi-ico { color: var(--text-3); display: flex; align-items: center; }
+.kpi-ico svg { width: 14px; height: 14px; }
+.kpi-value { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; color: var(--text); line-height: 1; }
+.kpi-sub { font-size: 11px; color: var(--text-3); margin-top: 5px; }
+
+/* Section cards */
+.section-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 14px 16px; }
+.section-hd {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+}
+.section-title-left { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 600; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase; }
+.section-title-left svg { width: 12px; height: 12px; }
+.section-actions { display: flex; gap: 6px; }
+
+/* Buttons */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 14px; background: var(--primary); color: #fff; border: 1px solid var(--primary);
+  border-radius: var(--r); font-family: var(--font-sans); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.02em; cursor: pointer; transition: background 0.12s;
+}
+.btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+.btn-primary svg { width: 13px; height: 13px; }
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 14px; background: none; color: var(--text-2);
+  border: 1px solid var(--border); border-radius: var(--r);
+  font-family: var(--font-sans); font-size: 12px; font-weight: 500; cursor: pointer;
+  transition: all 0.12s;
+}
+.btn-outline:hover { border-color: var(--border-hi); color: var(--text); background: var(--bg-3); }
+.btn-outline svg { width: 13px; height: 13px; }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; background: var(--bg-2); color: var(--text-2);
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.12s;
+}
+.btn-secondary:hover { border-color: var(--border-hi); color: var(--text); background: var(--bg-3); }
+.btn-secondary svg { width: 12px; height: 12px; }
+.btn-demo { background: var(--primary-bg); color: var(--primary-text); border-color: var(--primary-border); }
+.btn-demo:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-demo.active { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-border); }
+.btn-demo.active:hover { background: var(--warn); color: #fff; border-color: var(--warn); }
+
+/* Entry table */
+.entry-table { width: 100%; border-collapse: collapse; }
+.entry-table th {
+  padding: 8px 12px; font-size: 10px; font-weight: 600;
+  color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase;
+  border-bottom: 1px solid var(--border); text-align: left; background: var(--bg-2);
+}
+.entry-table td {
+  padding: 9px 12px; font-size: 12px; color: var(--text-2); border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.entry-table tr:last-child td { border-bottom: none; }
+.entry-table tr:hover td { background: var(--bg-2); }
+.code-badge {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  padding: 2px 6px; border-radius: 3px; white-space: nowrap; border: 1px solid;
+}
+.cb-safety { background: var(--bad-bg); color: var(--bad); border-color: var(--bad-border); }
+.cb-warn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-border); }
+.cb-info { background: var(--bg-3); color: var(--text-2); border-color: var(--border); }
+.del-btn {
+  width: 24px; height: 24px; border-radius: var(--r-sm); border: 1px solid var(--border);
+  background: none; cursor: pointer; color: var(--text-3); font-size: 12px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.12s;
+}
+.del-btn:hover { border-color: var(--bad-border); color: var(--bad); background: var(--bad-bg); }
+.del-btn svg { width: 12px; height: 12px; }
+.empty-state { padding: 36px 16px; text-align: center; color: var(--text-3); font-size: 12px; }
+
+/* ===== MES / HMI OVERRIDES ===== */
+:root {
+  --r: 2px;
+  --r-sm: 1px;
+  --r-lg: 3px;
+}
+.status-badge {
+  background: none;
+  border-color: var(--border-hi);
+  letter-spacing: 0.04em;
+  border-radius: 2px;
+}
+.nav-link { border-radius: 2px; }
+.divider { height: 16px; }
+/* Panel */
+.panel-title svg { display: none; }
+.panel-title { letter-spacing: 0.06em; font-size: 9px; }
+/* Line list: flat rows */
+.line-list { padding: 0; gap: 0; }
+.line-card {
+  border-radius: 0;
+  border-left: none; border-right: none; border-top: none;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 14px;
+  background: none;
+}
+.line-card:first-child { border-top: 1px solid var(--border); }
+.line-card:hover { background: var(--bg-3); border-color: var(--border); border-top: none; }
+.line-card.active { background: var(--bg-3); border-color: var(--border); }
+.line-card.active::before { width: 2px; left: 0; top: 0; bottom: 0; border-radius: 0; }
+/* Rate badges: text-only */
+.lc-rate { border: none; padding: 0; font-size: 11px; }
+/* KPI: data row */
+.kpi-row { border: 1px solid var(--border); gap: 0; border-radius: 3px; overflow: hidden; }
+.kpi { background: none; border-radius: 0; border: none; border-left: 2px solid transparent; border-right: 1px solid var(--border); }
+.kpi:last-child { border-right: none; }
+.kpi.ok { border-left-color: var(--ok); }
+.kpi.warn { border-left-color: var(--warn); }
+.kpi.danger { border-left-color: var(--bad); }
+.kpi-ico { display: none; }
+.kpi-hd { margin-bottom: 4px; }
+.kpi-value { font-size: 26px; font-family: var(--font-mono); letter-spacing: -0.02em; }
+.kpi-label { font-size: 9px; letter-spacing: 0.05em; color: var(--text-4); }
+/* Tabs */
+.main-tab { border-radius: 0; }
+.floor-tab { font-size: 10px; }
+.main-tab svg { display: none; }
+/* Section cards */
+.section-card { border-radius: 3px; }
+.section-title-left svg { display: none; }
+.section-title-left { gap: 0; }
+/* Buttons */
+.btn-primary { border-radius: 2px; }
+.btn-outline { border-radius: 2px; }
+.btn-secondary { border-radius: 2px; }
+.btn-demo { border-radius: 2px; }
+/* Badges */
+.code-badge { border-radius: 1px; }
+/* Form */
+.form-card { border-radius: 3px; }
+.form-input, .form-select, .form-textarea { border-radius: 2px; }
+.form-section-title svg { display: none; }
+.form-success { border-radius: 2px; }
+.form-success svg { display: none; }
+/* Sidebar toggle */
+.sidebar-toggle { border-radius: 2px; }
+
+/* ===== TABLET SCALE-UP (MAX) ===== */
+html { -webkit-text-size-adjust: 100%; }
+* { -webkit-tap-highlight-color: transparent; }
+html, body { font-size: 16px; }
+a, button, [onclick], .floor-tab, .line-card, .main-tab { cursor: pointer; }
+.top-bar, .left-panel, .floor-tab, .floor-tabs, .panel-title,
+.main-tab, .tab-bar, .lc-header, .lc-name, .lc-rate,
+.btn-primary, .btn-outline, .btn-secondary, .kpi-label, .kpi-sub {
+  user-select: none; -webkit-user-select: none;
+}
+.dash { grid-template-columns: 300px 1fr; grid-template-rows: 72px 1fr; }
+.top-bar { height: 72px; padding: 0 24px; }
+.logo-mark { width: 42px; height: 42px; font-size: 13px; }
+.brand-name { font-size: 17px; }
+.brand-sub { font-size: 12px; }
+.clock { font-size: 28px; }
+.date-str { font-size: 12px; }
+.status-badge { font-size: 13px; padding: 7px 14px; }
+.nav-link { font-size: 14px; padding: 10px 16px; min-height: 48px; touch-action: manipulation; }
+.panel-title { padding: 16px 20px 12px; font-size: 11px; }
+.floor-tab {
+  padding: 0 4px; font-size: 12px;
+  min-height: 52px; display: flex; align-items: center; justify-content: center;
+  touch-action: manipulation;
+}
+.floor-tab:active { background: var(--bg-3); }
+.line-card { padding: 14px 20px; min-height: 64px; touch-action: manipulation; }
+.line-card:active { background: var(--primary-bg) !important; }
+.lc-name { font-size: 15px; }
+.lc-rate { font-size: 13px; }
+.lc-counts { font-size: 12px; margin-top: 4px; }
+.lc-bar { height: 3px; margin-top: 6px; }
+.kpi { padding: 20px 24px; }
+.kpi-value { font-size: 40px; }
+.kpi-label { font-size: 11px; }
+.kpi-sub { font-size: 13px; margin-top: 8px; }
+.main-panel { padding: 24px; gap: 20px; }
+.main-tab {
+  padding: 0 24px; font-size: 14px;
+  min-height: 52px; display: inline-flex; align-items: center; gap: 6px;
+  touch-action: manipulation;
+}
+.main-tab:active { background: var(--bg-3); }
+.section-card { padding: 22px 24px; }
+.section-title-left { font-size: 12px; }
+.entry-table th { padding: 13px 16px; font-size: 12px; }
+.entry-table td { padding: 15px 16px; font-size: 14px; }
+.code-badge { font-size: 12px; padding: 4px 10px; }
+.del-btn { width: 40px; height: 40px; font-size: 16px; touch-action: manipulation; }
+.btn-primary { padding: 13px 24px; font-size: 15px; min-height: 52px; touch-action: manipulation; }
+.btn-primary:active { filter: brightness(0.9); }
+.btn-outline { padding: 13px 20px; font-size: 15px; min-height: 52px; touch-action: manipulation; }
+.btn-outline:active { background: var(--bg-3); }
+.btn-secondary { padding: 10px 16px; font-size: 13px; min-height: 44px; touch-action: manipulation; }
+.btn-secondary:active { background: var(--bg-3); }
+.form-card { padding: 28px; }
+.form-line-display { padding: 16px 20px; margin-bottom: 24px; }
+.form-line-display .fld-label { font-size: 11px; }
+.form-line-display .fld-name { font-size: 20px; }
+.form-section-title { font-size: 12px; margin-bottom: 22px; }
+.form-label { font-size: 12px; letter-spacing: 0.08em; }
+.form-input, .form-select, .form-textarea { padding: 15px 16px; font-size: 16px; min-height: 54px; }
+.form-grid { gap: 20px; }
+.form-actions { margin-top: 24px; gap: 12px; }
+.form-success { padding: 12px 16px; font-size: 14px; min-height: 52px; }
+
+/* ===== TABLET / TOUCH ===== */
+.sidebar-toggle {
+  display: none; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: var(--r);
+  border: 1px solid var(--border); background: none;
+  cursor: pointer; color: var(--text-2); flex-shrink: 0; transition: all 0.12s;
+}
+.sidebar-toggle:hover { background: var(--bg-3); }
+.sidebar-toggle svg { width: 18px; height: 18px; }
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,23,42,0.45); z-index: 99;
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+}
+.sidebar-overlay.show { display: block; }
+
+@media (max-width: 1100px) {
+  .dash { grid-template-columns: 200px 1fr; }
+}
+@media (max-width: 860px) {
+  .dash { grid-template-columns: 1fr; }
+  .left-panel {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 280px;
+    z-index: 100; transform: translateX(-110%);
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.12);
+  }
+  .left-panel.open { transform: translateX(0); }
+  .sidebar-toggle { display: flex; }
+  .main-panel { padding: 12px; gap: 10px; }
+  .top-bar { padding: 0 12px; }
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .kpi-value { font-size: 24px; }
+  /* Touch targets */
+  .floor-tab { padding: 11px 4px; font-size: 11px; }
+  .line-card { padding: 11px 12px; }
+  .main-tab { padding: 11px 14px; }
+  .nav-link { padding: 8px 12px; font-size: 12px; }
+  .btn-primary { padding: 10px 18px; min-height: 44px; }
+  .btn-outline { padding: 10px 14px; min-height: 44px; }
+  .btn-secondary { padding: 8px 12px; min-height: 36px; }
+  .form-input, .form-select, .form-textarea { padding: 11px 12px; font-size: 14px; }
+  .form-grid { gap: 14px; }
+  /* Entry table: scroll on overflow */
+  .entry-table { min-width: 600px; }
+  .section-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+@media (max-width: 600px) {
+  .kpi-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .kpi { padding: 10px 12px; }
+  .kpi-value { font-size: 22px; }
+  .clock-block { display: none; }
+  .brand-name { font-size: 12px; }
+  .brand-sub { display: none; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-field.full { grid-column: 1; }
+  .main-panel { padding: 10px; }
+}
+
+/* Form */
+.form-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 20px; }
+.form-line-display {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; background: var(--primary-bg); border: 1px solid var(--primary-border);
+  border-left: 3px solid var(--primary); margin-bottom: 20px;
+}
+.form-line-display .fld-label { font-size: 10px; font-weight: 600; color: var(--primary-text); letter-spacing: 0.1em; text-transform: uppercase; flex-shrink: 0; }
+.form-line-display .fld-name { font-size: 15px; font-weight: 700; color: var(--text); }
+.form-line-display.no-line { background: var(--bg-3); border-color: var(--border); border-left-color: var(--border-hi); }
+.form-line-display.no-line .fld-name { font-size: 13px; font-weight: 400; color: var(--text-4); }
+.form-section-title { font-size: 10px; font-weight: 600; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
+.form-section-title svg { width: 12px; height: 12px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-field { display: flex; flex-direction: column; gap: 4px; }
+.form-field.full { grid-column: 1 / -1; }
+.form-label { font-size: 10px; font-weight: 600; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase; }
+.form-input, .form-select, .form-textarea {
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--r);
+  font-family: var(--font-sans); font-size: 13px; color: var(--text);
+  background: var(--bg); transition: border-color 0.12s, box-shadow 0.12s;
+  -webkit-appearance: none; appearance: none;
+}
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; cursor: pointer;
+}
+.form-textarea { resize: vertical; min-height: 68px; }
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-bg);
+}
+.form-actions { margin-top: 16px; display: flex; gap: 8px; align-items: center; }
+.form-success {
+  padding: 7px 12px; background: var(--ok-bg); border: 1px solid var(--ok-border);
+  border-radius: var(--r); font-size: 12px; color: var(--ok); font-weight: 500;
+  display: none; align-items: center; gap: 5px;
+}
+.form-success.show { display: inline-flex; }
+.form-success svg { width: 13px; height: 13px; }
+  </style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="dash">
+
+  <div class="top-bar">
+    <div class="brand-block">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="메뉴"><i data-lucide="menu"></i></button>
+      <div class="logo-mark">QC</div>
+      <div class="brand-text">
+        <span class="brand-name">AJ SOLUTIONS</span>
+        <span class="brand-sub">QC Monitor</span>
+      </div>
+      <div class="divider"></div>
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span id="statusText">TODAY</span>
+      </div>
+      <a class="nav-link" href="index.html">
+        <i data-lucide="arrow-left"></i>생산 현황
+      </a>
+    </div>
+    <div class="clock-block">
+      <div class="clock" id="clk">--:--</div>
+      <div class="date-str" id="dt"></div>
+    </div>
+  </div>
+
+  <!-- Left panel -->
+  <div class="left-panel">
+    <div class="panel-title">
+      <i data-lucide="shield-check"></i>불량 현황 · QC Status
+    </div>
+    <div class="floor-tabs">
+      <div class="floor-tab active" data-floor="all">ALL</div>
+      <div class="floor-tab" data-floor="2층">2F</div>
+      <div class="floor-tab" data-floor="1층">1F</div>
+      <div class="floor-tab" data-floor="기타">AUX</div>
+    </div>
+    <div class="line-list" id="lineList"></div>
+  </div>
+
+  <!-- Main panel -->
+  <div class="main-panel">
+    <div class="tab-bar">
+      <button class="main-tab active" data-tab="dashboard">
+        <i data-lucide="layout-dashboard"></i>현황
+      </button>
+      <button class="main-tab" data-tab="input">
+        <i data-lucide="plus-circle"></i>불량 입력
+      </button>
+    </div>
+
+    <!-- Dashboard tab -->
+    <div id="tabDashboard">
+      <div class="kpi-row" id="kpiRow"></div>
+
+      <div class="section-card">
+        <div class="section-hd">
+          <div class="section-title-left">
+            <i data-lucide="bar-chart-2"></i>불량 코드별 현황 · Defect Code Breakdown
+          </div>
+        </div>
+        <div style="position:relative;width:100%;height:190px;">
+          <canvas id="defectChart"></canvas>
+        </div>
+      </div>
+
+      <div class="section-card" style="padding:0;overflow:hidden;">
+        <div class="section-hd" style="padding:12px 16px;margin-bottom:0;">
+          <div class="section-title-left">
+            <i data-lucide="list"></i>오늘 입력 내역 · Today's Entries
+          </div>
+          <div class="section-actions">
+            <button class="btn-secondary btn-demo" id="demoBtn" onclick="toggleDemo()">
+              <i data-lucide="flask-conical"></i>Demo 실행
+            </button>
+            <button class="btn-secondary" onclick="exportCSV()">
+              <i data-lucide="download"></i>CSV
+            </button>
+          </div>
+        </div>
+        <div id="entryTableWrap"></div>
+      </div>
+    </div>
+
+    <!-- Input tab -->
+    <div id="tabInput" style="display:none">
+      <div class="form-card">
+        <div class="form-section-title">
+          <i data-lucide="plus-circle"></i>불량 입력 · Defect Entry
+        </div>
+        <form id="defectForm" onsubmit="submitDefect(event)">
+          <div id="formLineDisplay" class="form-line-display no-line">
+            <span class="fld-label">라인</span>
+            <span class="fld-name" id="formLineName">← 왼쪽에서 라인을 선택하세요</span>
+          </div>
+          <div class="form-grid">
+            <div class="form-field full">
+              <label class="form-label">불량 코드 *</label>
+              <select class="form-select" id="fDefectCode" required></select>
+            </div>
+            <div class="form-field">
+              <label class="form-label">불량 수 *</label>
+              <input class="form-input" type="number" id="fDefectCount" min="1" required placeholder="0">
+            </div>
+            <div class="form-field">
+              <label class="form-label">검사 수량 *</label>
+              <input class="form-input" type="number" id="fInspectionQty" min="1" required placeholder="0">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" id="fSubmitBtn">
+              <i data-lucide="check"></i>제출
+            </button>
+            <button type="button" class="btn-outline" onclick="resetDefectFields()">초기화</button>
+            <div class="form-success" id="formSuccess">
+              <i data-lucide="check-circle-2"></i>입력 완료
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const PROCESSES = [
+  '준비 (Preparation)', '재단 (Cutting)', '레이저 (Laser)', '웨빙 재단 (Webbing Cutting)',
+  '프린트+자수 (PRT+EMB)', '콤비+바텍 (COM+BT)', '리벳 (RIVET)', '포장 (Packing)',
+  '봉제 (STITCHING)', '조립 (ASSEMBLY)', '마무리 (FINISHING)', '검사 (INSPECTION)',
+];
+
+const DEFECT_CODES = [
+  // MATERIAL (01-09)
+  { code: 'DEF-01', label: 'Shell Fabric Defect',    labelKo: '원단 불량',       cat: 'MATERIAL',     sev: 'info' },
+  { code: 'DEF-02', label: 'Lining Defect',           labelKo: '안감 불량',       cat: 'MATERIAL',     sev: 'info' },
+  { code: 'DEF-03', label: 'Zipper Defect',           labelKo: '지퍼 불량',       cat: 'MATERIAL',     sev: 'info' },
+  { code: 'DEF-04', label: 'Color Mismatch',          labelKo: '색상 불일치',     cat: 'MATERIAL',     sev: 'info' },
+  { code: 'DEF-05', label: 'Trim / Accessory Defect', labelKo: '부자재 불량',     cat: 'MATERIAL',     sev: 'info' },
+  { code: 'DEF-06', label: 'Hardware Defect',         labelKo: '하드웨어 불량',   cat: 'MATERIAL',     sev: 'info' },
+  { code: 'DEF-07', label: 'Thread Defect',           labelKo: '실 불량',         cat: 'MATERIAL',     sev: 'info' },
+  { code: 'DEF-08', label: 'Padding Defect',          labelKo: '패딩 불량',       cat: 'MATERIAL',     sev: 'info' },
+  { code: 'DEF-09', label: 'Webbing Defect',          labelKo: '웨빙 불량',       cat: 'MATERIAL',     sev: 'info' },
+  // WORKMANSHIP (10-18)
+  { code: 'DEF-10', label: 'Stitching Defect',        labelKo: '봉제 불량',       cat: 'WORKMANSHIP',  sev: 'warn' },
+  { code: 'DEF-11', label: 'Bartack Missing / Wrong', labelKo: '바텍 누락/오류',  cat: 'WORKMANSHIP',  sev: 'warn' },
+  { code: 'DEF-12', label: 'Embroidery Defect',       labelKo: '자수 불량',       cat: 'WORKMANSHIP',  sev: 'warn' },
+  { code: 'DEF-13', label: 'Seam Puckering',          labelKo: '솔기 주름',       cat: 'WORKMANSHIP',  sev: 'warn' },
+  { code: 'DEF-14', label: 'Open Seam',               labelKo: '솔기 터짐',       cat: 'WORKMANSHIP',  sev: 'warn' },
+  { code: 'DEF-15', label: 'Uneven Seam',             labelKo: '솔기 불균일',     cat: 'WORKMANSHIP',  sev: 'warn' },
+  { code: 'DEF-16', label: 'Wrong Dimension',         labelKo: '치수 불량',       cat: 'WORKMANSHIP',  sev: 'warn' },
+  { code: 'DEF-17', label: 'Skip Stitch',             labelKo: '땀 건너뜀',       cat: 'WORKMANSHIP',  sev: 'warn' },
+  { code: 'DEF-18', label: 'Needle Damage',           labelKo: '바늘 자국',       cat: 'WORKMANSHIP',  sev: 'warn' },
+  // FUNCTION / MEASUREMENT (19-28)
+  { code: 'DEF-19', label: 'Zipper Function Defect',  labelKo: '지퍼 작동 불량', cat: 'FUNCTION',     sev: 'warn' },
+  { code: 'DEF-20', label: 'Handle Size Defect',      labelKo: '핸들 사이즈 불량',cat: 'FUNCTION',    sev: 'warn' },
+  { code: 'DEF-21', label: 'Strap Length Defect',     labelKo: '스트랩 길이 불량',cat: 'FUNCTION',    sev: 'warn' },
+  { code: 'DEF-22', label: 'Closure Function Defect', labelKo: '잠금 기능 불량', cat: 'FUNCTION',     sev: 'warn' },
+  { code: 'DEF-23', label: 'Buckle Defect',           labelKo: '버클 불량',       cat: 'FUNCTION',     sev: 'warn' },
+  { code: 'DEF-24', label: 'Rivet Loose',             labelKo: '리벳 불량',       cat: 'FUNCTION',     sev: 'warn' },
+  { code: 'DEF-25', label: 'Pull Tab Defect',         labelKo: '손잡이 불량',     cat: 'FUNCTION',     sev: 'warn' },
+  { code: 'DEF-26', label: 'Pocket Defect',           labelKo: '포켓 불량',       cat: 'FUNCTION',     sev: 'warn' },
+  { code: 'DEF-27', label: 'Shape Deformation',       labelKo: '형태 변형',       cat: 'FUNCTION',     sev: 'warn' },
+  { code: 'DEF-28', label: 'Weight Non-conformance',  labelKo: '중량 불량',       cat: 'FUNCTION',     sev: 'warn' },
+  // CLEANLINESS (29-33)
+  { code: 'DEF-29', label: 'Thread Ends Exposed',     labelKo: '실밥 미처리',     cat: 'CLEANLINESS',  sev: 'info' },
+  { code: 'DEF-30', label: 'Glue Mark',               labelKo: '접착제 자국',     cat: 'CLEANLINESS',  sev: 'info' },
+  { code: 'DEF-31', label: 'Stain',                   labelKo: '오염',            cat: 'CLEANLINESS',  sev: 'info' },
+  { code: 'DEF-32', label: 'Dirty Mark',              labelKo: '더러운 자국',     cat: 'CLEANLINESS',  sev: 'info' },
+  { code: 'DEF-33', label: 'Foreign Material',        labelKo: '이물질 혼입',     cat: 'CLEANLINESS',  sev: 'info' },
+  // LABEL & PACKING (34-38)
+  { code: 'DEF-34', label: 'Sewing Label Defect',     labelKo: '봉제 라벨 불량', cat: 'LABEL',        sev: 'info' },
+  { code: 'DEF-35', label: 'Missing Parts',           labelKo: '부품 누락',       cat: 'LABEL',        sev: 'info' },
+  { code: 'DEF-36', label: 'Wrong Label',             labelKo: '라벨 오부착',     cat: 'LABEL',        sev: 'info' },
+  { code: 'DEF-37', label: 'Barcode Error',           labelKo: '바코드 오류',     cat: 'LABEL',        sev: 'info' },
+  { code: 'DEF-38', label: 'Packaging Defect',        labelKo: '포장 불량',       cat: 'LABEL',        sev: 'info' },
+  // SAFETY / REGULATION (39-43) — always CRITICAL
+  { code: 'DEF-39', label: 'Broken Needle',           labelKo: '바늘 파손',       cat: 'SAFETY',       sev: 'critical' },
+  { code: 'DEF-40', label: 'Sharp Edge',              labelKo: '날카로운 모서리', cat: 'SAFETY',       sev: 'critical' },
+  { code: 'DEF-41', label: 'Mold',                    labelKo: '곰팡이',          cat: 'SAFETY',       sev: 'critical' },
+  { code: 'DEF-42', label: 'Insect',                  labelKo: '이물질(벌레)',    cat: 'SAFETY',       sev: 'critical' },
+  { code: 'DEF-43', label: 'Odor / Chemical Smell',   labelKo: '냄새/화학물질',  cat: 'SAFETY',       sev: 'critical' },
+];
+
+const DEFAULT_LINES = [
+  { id: 'L1',  name: 'L1 라인',  floor: '1층', isHelper: false },
+  { id: 'L2',  name: 'L2 라인',  floor: '1층', isHelper: false },
+  { id: 'L3',  name: 'L3 라인',  floor: '1층', isHelper: false },
+  { id: 'L4',  name: 'L4 라인',  floor: '1층', isHelper: false },
+  { id: 'L5',  name: 'L5 라인',  floor: '1층', isHelper: false },
+  { id: 'L6',  name: 'L6 라인',  floor: '1층', isHelper: false },
+  { id: 'L7',  name: 'L7 라인',  floor: '1층', isHelper: false },
+  { id: 'L8',  name: 'L8 라인',  floor: '1층', isHelper: false },
+  { id: 'L21', name: 'L21 라인', floor: '2층', isHelper: false },
+  { id: 'L22', name: 'L22 라인', floor: '2층', isHelper: false },
+  { id: 'L23', name: 'L23 라인', floor: '2층', isHelper: false },
+  { id: 'L24', name: 'L24 라인', floor: '2층', isHelper: false },
+  { id: 'L25', name: 'L25 라인', floor: '2층', isHelper: false },
+  { id: 'L26', name: 'L26 라인', floor: '2층', isHelper: false },
+  { id: 'L27', name: 'L27 라인', floor: '2층', isHelper: false },
+  { id: 'L28', name: 'L28 라인', floor: '2층', isHelper: false },
+  { id: 'L29', name: 'L29 라인', floor: '2층', isHelper: false },
+];
+
+let lines = [];
+let activeFloor = 'all';
+let activeTab = 'dashboard';
+let defectChart = null;
+
+function today() { return new Date().toISOString().slice(0, 10); }
+function storageKey() { return 'qc_events_' + today(); }
+
+function getEvents() {
+  try { return JSON.parse(localStorage.getItem(storageKey()) || '[]'); } catch { return []; }
+}
+function saveEvents(evts) { localStorage.setItem(storageKey(), JSON.stringify(evts)); }
+
+function loadLines() {
+  try {
+    const stored = localStorage.getItem('production_lines');
+    if (stored) { lines = JSON.parse(stored); return; }
+  } catch {}
+  lines = DEFAULT_LINES;
+}
+
+function getLineDefects() {
+  const events = getEvents();
+  const byLine = {};
+  events.forEach(e => {
+    if (!byLine[e.line_id]) byLine[e.line_id] = { defectCount: 0, inspectionQty: 0 };
+    byLine[e.line_id].defectCount += Number(e.defect_count) || 0;
+    byLine[e.line_id].inspectionQty += Number(e.inspection_qty) || 0;
+  });
+  return byLine;
+}
+
+function defectRateClass(r) {
+  if (r === null) return 'rate-none';
+  return r > 0.05 ? 'rate-bad' : r > 0.02 ? 'rate-warn' : 'rate-ok';
+}
+function defectRateColor(r) {
+  return r > 0.05 ? '#0C4A6E' : r > 0.02 ? '#0D9488' : '#16A34A';
+}
+
+function getLineAlerts(lineId) {
+  const events = getEvents().filter(function(e) { return e.line_id === lineId; });
+  if (!events.length) return null;
+  const hasSafetyCode = events.some(function(e) {
+    const n = parseInt((e.defect_code || '').replace('DEF-', ''), 10);
+    return n >= 39 && n <= 43;
+  });
+  const totalDefects = events.reduce(function(s, e) { return s + (Number(e.defect_count) || 0); }, 0);
+  const totalInspected = events.reduce(function(s, e) { return s + (Number(e.inspection_qty) || 0); }, 0);
+  const rate = totalInspected > 0 ? totalDefects / totalInspected : 0;
+  const codeCounts = {};
+  events.forEach(function(e) {
+    codeCounts[e.defect_code] = (codeCounts[e.defect_code] || 0) + (Number(e.defect_count) || 0);
+  });
+  const hasRepeatCode = Object.values(codeCounts).some(function(c) { return c >= 5; });
+  if (hasSafetyCode || rate >= 0.08) return 'critical';
+  if (rate >= 0.05 || hasRepeatCode) return 'warning';
+  return null;
+}
+
+function renderLineList() {
+  const el = document.getElementById('lineList');
+  const byLine = getLineDefects();
+  const filtered = activeFloor === 'all' ? lines : lines.filter(l => l.floor === activeFloor);
+  el.innerHTML = '';
+  filtered.forEach(l => {
+    const d = byLine[l.id];
+    const rate = (d && d.inspectionQty > 0) ? d.defectCount / d.inspectionQty : null;
+    const div = document.createElement('div');
+    div.className = 'line-card';
+    const rateBadge = rate !== null
+      ? '<span class="lc-rate ' + defectRateClass(rate) + '">' + (rate * 100).toFixed(1) + '%</span>'
+      : '<span class="lc-rate rate-none">—</span>';
+    const countsText = d ? d.defectCount + '건 / ' + d.inspectionQty + '개' : '미입력';
+    const barWidth = rate !== null ? Math.min(rate / 0.1 * 100, 100).toFixed(1) : '0';
+    const barColor = rate !== null ? defectRateColor(rate) : '#E2E8F0';
+    const alertLevel = getLineAlerts(l.id);
+    const alertBadge = alertLevel === 'critical'
+      ? ' <span style="font-family:var(--font-mono);font-size:9px;font-weight:700;padding:1px 5px;background:var(--bad-bg);color:var(--bad);border:1px solid var(--bad-border);">CRIT</span>'
+      : alertLevel === 'warning'
+      ? ' <span style="font-family:var(--font-mono);font-size:9px;font-weight:700;padding:1px 5px;background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border);">WARN</span>'
+      : '';
+    div.innerHTML =
+      '<div class="lc-header">' +
+      '<span class="lc-name">' + l.name + alertBadge + '</span>' +
+      rateBadge +
+      '</div>' +
+      '<div class="lc-counts">' + countsText + '</div>' +
+      (rate !== null ? '<div class="lc-bar"><div class="lc-bar-fill" style="width:' + barWidth + '%;background:' + barColor + ';"></div></div>' : '');
+    div.onclick = (function(lineId) { return function() {
+      setSelectedLine(lineId);
+      switchTab('input');
+      closeSidebar();
+    }; })(l.id);
+    el.appendChild(div);
+  });
+}
+
+function renderKpis() {
+  const events = getEvents();
+  const totalDefects = events.reduce(function(s, e) { return s + (Number(e.defect_count) || 0); }, 0);
+  const totalInspected = events.reduce(function(s, e) { return s + (Number(e.inspection_qty) || 0); }, 0);
+  const rate = totalInspected > 0 ? totalDefects / totalInspected : 0;
+  const rateClass = rate > 0.05 ? 'danger' : rate > 0.02 ? 'warn' : (totalInspected > 0 ? 'ok' : '');
+  const critLines = lines.filter(function(l) { return getLineAlerts(l.id) === 'critical'; }).length;
+  const warnLines = lines.filter(function(l) { return getLineAlerts(l.id) === 'warning'; }).length;
+  const alertCls = critLines > 0 ? 'danger' : warnLines > 0 ? 'warn' : (totalInspected > 0 ? 'ok' : '');
+  const alertVal = critLines > 0 ? critLines + ' CRIT' : warnLines > 0 ? warnLines + ' WARN' : '—';
+  const alertSub = critLines > 0 ? '즉시 조치 필요' : warnLines > 0 ? '주의 라인' : (totalInspected > 0 ? '이상 없음' : '데이터 없음');
+  const icons = ['file-text', 'alert-triangle', 'search', 'percent', 'shield-alert'];
+  const kpis = [
+    { label: '입력 건수 · Entries',    value: events.length,                  sub: '오늘 입력',                         cls: '',        ico: icons[0] },
+    { label: '불량 수 · Defects',      value: totalDefects,                   sub: '건 발생',                           cls: totalDefects > 0 ? 'warn' : 'ok', ico: icons[1] },
+    { label: '검사 수 · Inspected',    value: totalInspected.toLocaleString(), sub: '개 검사',                          cls: '',        ico: icons[2] },
+    { label: '불량률 · Defect Rate',   value: (rate * 100).toFixed(2) + '%',  sub: totalInspected > 0 ? '기준 0~5%' : '데이터 없음', cls: rateClass, ico: icons[3] },
+    { label: '경보 · Alerts',          value: alertVal,                       sub: alertSub,                            cls: alertCls,  ico: icons[4] },
+  ];
+  const row = document.getElementById('kpiRow');
+  row.innerHTML = '';
+  kpis.forEach(function(k) {
+    const div = document.createElement('div');
+    div.className = 'kpi ' + k.cls;
+    div.innerHTML =
+      '<div class="kpi-hd"><span class="kpi-label">' + k.label + '</span>' +
+      '<span class="kpi-ico"><i data-lucide="' + k.ico + '"></i></span></div>' +
+      '<div class="kpi-value">' + k.value + '</div>' +
+      '<div class="kpi-sub">' + k.sub + '</div>';
+    row.appendChild(div);
+  });
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function renderChart() {
+  const events = getEvents();
+  const codeCounts = {};
+  events.forEach(function(e) {
+    codeCounts[e.defect_code] = (codeCounts[e.defect_code] || 0) + (Number(e.defect_count) || 0);
+  });
+  const sorted = Object.entries(codeCounts).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 12);
+  const canvas = document.getElementById('defectChart');
+  if (!canvas) return;
+  if (defectChart) { defectChart.destroy(); defectChart = null; }
+  if (!sorted.length) return;
+  const labels = sorted.map(function(x) { return x[0]; });
+  const data = sorted.map(function(x) { return x[1]; });
+  const colors = labels.map(function(code) {
+    const def = DEFECT_CODES.find(function(d) { return d.code === code; });
+    if (!def) return '#0EA5E9';
+    if (def.sev === 'critical') return '#0C4A6E';
+    if (def.sev === 'warn') return '#0D9488';
+    return '#0EA5E9';
+  });
+  defectChart = new Chart(canvas, {
+    type: 'bar',
+    data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderRadius: 3, borderSkipped: false }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0F172A', borderColor: '#1E293B', borderWidth: 1,
+          titleColor: '#F8FAFC', bodyColor: '#94A3B8', padding: 10,
+          titleFont: { family: "'Inter', sans-serif", weight: '600', size: 12 },
+          bodyFont: { family: "'Inter', sans-serif", size: 11 },
+          callbacks: {
+            title: function(ctx) {
+              const def = DEFECT_CODES.find(function(d) { return d.code === ctx[0].label; });
+              return ctx[0].label + (def ? ' · ' + def.labelKo : '');
+            },
+            label: function(ctx) { return ' 불량 ' + ctx.parsed.y + '건'; },
+          },
+        },
+      },
+      scales: {
+        x: { ticks: { font: { size: 11, family: "'JetBrains Mono', monospace" }, color: '#94A3B8' }, grid: { display: false }, border: { color: '#E2E8F0' } },
+        y: { ticks: { font: { size: 11, family: "'JetBrains Mono', monospace" }, color: '#94A3B8' }, grid: { color: '#F1F5F9' }, border: { display: false }, min: 0 },
+      },
+    },
+  });
+}
+
+function renderEntryTable() {
+  const events = getEvents().slice().reverse();
+  const wrap = document.getElementById('entryTableWrap');
+  if (!events.length) {
+    wrap.innerHTML = '<div class="empty-state">오늘 입력된 데이터가 없습니다.</div>';
+    return;
+  }
+  let html = '<table class="entry-table"><thead><tr>' +
+    '<th>시간</th><th>라인</th><th>불량 코드</th><th>불량</th><th>검사</th><th>불량률</th><th></th>' +
+    '</tr></thead><tbody>';
+  events.forEach(function(e) {
+    const def = DEFECT_CODES.find(function(d) { return d.code === e.defect_code; });
+    const sev = def ? def.sev : 'info';
+    const badgeCls = sev === 'critical' ? 'cb-safety' : sev === 'warn' ? 'cb-warn' : 'cb-info';
+    const t = new Date(e.created_at);
+    const hhmm = String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
+    const rate = e.inspection_qty > 0 ? (e.defect_count / e.inspection_qty * 100).toFixed(1) + '%' : '—';
+    const lineName = (lines.find(function(l) { return l.id === e.line_id; }) || { name: e.line_id }).name;
+    html += '<tr>' +
+      '<td style="font-family:var(--font-mono);font-size:11px;">' + hhmm + '</td>' +
+      '<td style="font-weight:600;font-size:12px;">' + lineName + '</td>' +
+      '<td><span class="code-badge ' + badgeCls + '">' + e.defect_code + '</span>' +
+      (def ? ' <span style="font-size:11px;color:var(--text-3);">' + def.labelKo + '</span>' : '') + '</td>' +
+      '<td style="font-family:var(--font-mono);font-weight:600;">' + e.defect_count + '</td>' +
+      '<td style="font-family:var(--font-mono);">' + e.inspection_qty + '</td>' +
+      '<td style="font-family:var(--font-mono);font-size:11px;">' + rate + '</td>' +
+      '<td><button class="del-btn" onclick="deleteEntry(\'' + e.event_id + '\')" title="삭제"><i data-lucide="x"></i></button></td>' +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function renderAll() {
+  renderLineList();
+  renderKpis();
+  renderChart();
+  renderEntryTable();
+  updateDemoBtn();
+}
+
+let selectedLineId = null;
+
+function setSelectedLine(id) {
+  selectedLineId = id;
+  localStorage.setItem('qc_selected_line', id);
+  updateFormLineDisplay();
+}
+
+function updateFormLineDisplay() {
+  const display = document.getElementById('formLineDisplay');
+  const nameEl = document.getElementById('formLineName');
+  const submitBtn = document.getElementById('fSubmitBtn');
+  if (selectedLineId) {
+    const line = lines.find(function(l) { return l.id === selectedLineId; }) || { name: selectedLineId };
+    nameEl.textContent = line.name;
+    display.classList.remove('no-line');
+    if (submitBtn) submitBtn.disabled = false;
+  } else {
+    nameEl.textContent = '← 왼쪽에서 라인을 선택하세요';
+    display.classList.add('no-line');
+    if (submitBtn) submitBtn.disabled = true;
+  }
+}
+
+function initForm() {
+  if (!selectedLineId) {
+    const saved = localStorage.getItem('qc_selected_line');
+    if (saved && lines.find(function(l) { return l.id === saved; })) {
+      selectedLineId = saved;
+    }
+  }
+  updateFormLineDisplay();
+
+  const codeEl = document.getElementById('fDefectCode');
+  codeEl.innerHTML = '<option value="">불량 코드 선택...</option>';
+  const categories = {};
+  DEFECT_CODES.forEach(function(d) { if (!categories[d.cat]) categories[d.cat] = []; categories[d.cat].push(d); });
+  Object.entries(categories).forEach(function(entry) {
+    const cat = entry[0], codes = entry[1];
+    const grp = document.createElement('optgroup');
+    grp.label = cat;
+    codes.forEach(function(d) {
+      const opt = document.createElement('option');
+      opt.value = d.code;
+      opt.textContent = d.code + ' · ' + d.labelKo + (d.sev === 'critical' ? ' ⚠' : '');
+      grp.appendChild(opt);
+    });
+    codeEl.appendChild(grp);
+  });
+}
+
+function submitDefect(e) {
+  e.preventDefault();
+  if (!selectedLineId) { alert('라인을 먼저 선택해주세요.'); return; }
+  const defectCode = document.getElementById('fDefectCode').value;
+  const defectCount = parseInt(document.getElementById('fDefectCount').value, 10);
+  const inspectionQty = parseInt(document.getElementById('fInspectionQty').value, 10);
+  if (!defectCode || !defectCount || !inspectionQty) return;
+  const entry = {
+    event_id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    created_at: new Date().toISOString(),
+    line_id: selectedLineId,
+    defect_code: defectCode, defect_count: defectCount,
+    inspection_qty: inspectionQty,
+  };
+  const events = getEvents();
+  events.push(entry);
+  saveEvents(events);
+  const succ = document.getElementById('formSuccess');
+  succ.classList.add('show');
+  setTimeout(function() { succ.classList.remove('show'); }, 2500);
+  document.getElementById('fDefectCode').value = '';
+  document.getElementById('fDefectCount').value = '';
+  document.getElementById('fInspectionQty').value = '';
+  renderAll();
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function resetDefectFields() {
+  document.getElementById('fDefectCode').value = '';
+  document.getElementById('fDefectCount').value = '';
+  document.getElementById('fInspectionQty').value = '';
+}
+
+function deleteEntry(id) {
+  const events = getEvents().filter(function(e) { return e.event_id !== id; });
+  saveEvents(events);
+  renderAll();
+}
+
+const DEMO_KEY = 'qc_demo_active';
+
+function isDemoActive() { return localStorage.getItem(DEMO_KEY) === today(); }
+
+function toggleDemo() { if (isDemoActive()) { clearDemo(); } else { loadDemoData(); } }
+
+function clearDemo() {
+  localStorage.removeItem(storageKey());
+  localStorage.removeItem(DEMO_KEY);
+  updateDemoBtn();
+  renderAll();
+}
+
+function loadDemoData() {
+  const nonHelpers = lines.filter(function(l) { return !l.isHelper; });
+  const scenarios = [
+    { insp: 300, codes: [['DEF-11', 3], ['DEF-29', 2], ['DEF-31', 1]] },          // OK
+    { insp: 231, codes: [['DEF-10', 6], ['DEF-11', 6], ['DEF-32', 1]] },          // WARN (rate≥5% + repeat)
+    { insp: 165, codes: [['DEF-10', 9], ['DEF-11', 6]] },                          // CRITICAL (rate≥8%)
+    { insp: 225, codes: [['DEF-10', 5], ['DEF-12', 4], ['DEF-20', 3], ['DEF-32', 3]] }, // WARN
+    { insp: 180, codes: [['DEF-11', 3], ['DEF-13', 2]] },                          // OK
+    { insp: 200, codes: [['DEF-10', 7], ['DEF-11', 5]] },                          // WARN (repeat)
+    { insp: 250, codes: [['DEF-29', 1], ['DEF-31', 1]] },                          // OK
+    { insp: 100, codes: [['DEF-10', 9], ['DEF-14', 3]] },                          // CRITICAL (rate≥8%)
+    { insp: 190, codes: [['DEF-13', 4], ['DEF-15', 4]] },                          // OK
+    { insp: 200, codes: [['DEF-30', 2], ['DEF-33', 1]] },                          // OK
+    { insp: 250, codes: [['DEF-29', 1], ['DEF-39', 1]] },                          // CRITICAL (safety code)
+    { insp: 160, codes: [['DEF-16', 5], ['DEF-17', 3]] },                          // WARN (repeat)
+    { insp: 120, codes: [['DEF-10', 4], ['DEF-40', 1]] },                          // CRITICAL (safety code)
+    { insp: 210, codes: [['DEF-11', 5], ['DEF-36', 2]] },                          // WARN (repeat)
+    { insp: 180, codes: [['DEF-12', 2], ['DEF-23', 2]] },                          // OK
+    { insp: 220, codes: [['DEF-10', 6], ['DEF-13', 5]] },                          // WARN (repeat)
+    { insp: 175, codes: [['DEF-29', 2], ['DEF-37', 1]] },                          // OK
+  ];
+  const t0 = new Date();
+  t0.setHours(8, 0, 0, 0);
+  const events = [];
+  nonHelpers.forEach(function(line, idx) {
+    const s = scenarios[idx % scenarios.length];
+    s.codes.forEach(function(codeEntry, codeIdx) {
+      const code = codeEntry[0], count = codeEntry[1];
+      const inspPerEvent = Math.round(s.insp / s.codes.length);
+      const minuteOffset = idx * 40 + codeIdx * 12;
+      const ts = new Date(t0.getTime() + minuteOffset * 60000);
+      events.push({
+        event_id: 'demo-' + line.id + '-' + codeIdx,
+        created_at: ts.toISOString(),
+        line_id: line.id,
+        defect_code: code,
+        defect_count: count,
+        inspection_qty: inspPerEvent,
+      });
+    });
+  });
+  saveEvents(events);
+  localStorage.setItem(DEMO_KEY, today());
+  updateDemoBtn();
+  renderAll();
+}
+
+function updateDemoBtn() {
+  const btn = document.getElementById('demoBtn');
+  if (!btn) return;
+  if (isDemoActive()) {
+    btn.innerHTML = '<i data-lucide="flask-conical"></i>Demo 초기화';
+    btn.classList.add('active');
+  } else {
+    btn.innerHTML = '<i data-lucide="flask-conical"></i>Demo 실행';
+    btn.classList.remove('active');
+  }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function exportCSV() {
+  const events = getEvents();
+  if (!events.length) { alert('내보낼 데이터가 없습니다.'); return; }
+  const header = ['Date', 'Time', 'Line ID', 'Line', 'DEF Code', 'DEF Label', 'Defect Count', 'Inspection Qty', 'Defect Rate'];
+  const rows = events.map(function(e) {
+    const t = new Date(e.created_at);
+    const def = DEFECT_CODES.find(function(d) { return d.code === e.defect_code; });
+    const rate = e.inspection_qty > 0 ? (e.defect_count / e.inspection_qty).toFixed(4) : '';
+    const lineName = (lines.find(function(l) { return l.id === e.line_id; }) || { name: e.line_id }).name;
+    return [
+      t.toLocaleDateString('ko-KR'), t.toLocaleTimeString('ko-KR'),
+      e.line_id, lineName,
+      e.defect_code, def ? def.labelKo : '', e.defect_count, e.inspection_qty, rate,
+    ];
+  });
+  const csv = [header].concat(rows).map(function(r) { return r.join(','); }).join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'qc_' + today() + '.csv';
+  a.click();
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.main-tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tab); });
+  document.getElementById('tabDashboard').style.display = tab === 'dashboard' ? '' : 'none';
+  document.getElementById('tabInput').style.display = tab === 'input' ? '' : 'none';
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function updateClock() {
+  const n = new Date();
+  document.getElementById('clk').textContent =
+    String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0');
+  const MM = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  document.getElementById('dt').textContent =
+    String(n.getDate()).padStart(2, '0') + ' ' + MM[n.getMonth()] + ' ' + n.getFullYear();
+  document.getElementById('statusText').textContent = today();
+}
+
+document.querySelectorAll('.floor-tab').forEach(function(t) {
+  t.onclick = function() {
+    document.querySelectorAll('.floor-tab').forEach(function(x) { x.classList.remove('active'); });
+    t.classList.add('active');
+    activeFloor = t.dataset.floor;
+    renderLineList();
+  };
+});
+
+document.querySelectorAll('.main-tab').forEach(function(t) {
+  t.onclick = function() { switchTab(t.dataset.tab); };
+});
+
+window.addEventListener('storage', function(e) {
+  if (e.key === 'production_lines') {
+    loadLines();
+    initForm();
+    renderAll();
+  }
+});
+
+function toggleSidebar() {
+  const panel = document.querySelector('.left-panel');
+  const overlay = document.getElementById('sidebarOverlay');
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open', !isOpen);
+  overlay.classList.toggle('show', !isOpen);
+}
+function closeSidebar() {
+  document.querySelector('.left-panel').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+loadLines();
+initForm();
+updateClock();
+setInterval(updateClock, 10000);
+if (typeof lucide !== 'undefined') lucide.createIcons();
+renderAll();
+</script>
+</body>
+</html>
