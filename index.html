@@ -878,6 +878,13 @@ async function loadData() {
   } catch (e) {
     console.error('[API] loadData 실패:', e);
     setConnectionStatus('error', e.message);
+    if (!LINES.length) {
+      LINES = adaptApiResponse(getMockData());
+      overlayDefectData(LINES);
+      localStorage.setItem('production_lines', JSON.stringify(LINES.map(l => ({ id: l.id, name: l.name, floor: l.floor, isHelper: l.isHelper }))));
+      renderLineList();
+      renderDetail();
+    }
   }
 }
 
