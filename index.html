@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -651,16 +651,26 @@ function adaptApiResponse(raw) {
     const apiFloor = item[f.floor] || '';
     const floor = API_CONFIG.floorMap[apiFloor] ?? (apiFloor || API_CONFIG.floorFallback);
     const hourlyRaw = f.hourly ? (item[f.hourly] || []) : [];
-    const hourly = hourlyRaw.map(h => ({
+    const hourlyParsed = hourlyRaw.map(h => ({
       hour: String(h[f.hourlyHour]).split(':')[0].padStart(2, '0'),
       count: Number(h[f.hourlyCount]) || 0,
     }));
-    const actual = f.actual ? Number(item[f.actual]) || 0 : hourly.reduce((s, h) => s + (h.count || 0), 0);
+    // API가 08~17시만 반환하더라도 다른 시간대에 생산이 발생할 수 있으므로
+    // 00~23시 전체를 채워 차트에 표시한다. 비근무 시간대는 0(회색 막대)으로 표시.
+    const workHourSet = new Set(hourlyParsed.map(h => h.hour));
+    const hourlyMap = {};
+    hourlyParsed.forEach(h => { hourlyMap[h.hour] = h.count; });
+    const hourly = Array.from({length: 24}, (_, i) => {
+      const h = String(i).padStart(2, '0');
+      return { hour: h, count: hourlyMap[h] ?? 0 };
+    });
+    const actual = f.actual ? Number(item[f.actual]) || 0 : hourlyParsed.reduce((s, h) => s + (h.count || 0), 0);
     const defectRate = f.defectRate ? (API_CONFIG.defectRateUnit === 'percent' ? (Number(item[f.defectRate]) || 0) / 100 : Number(item[f.defectRate]) || 0) : 0;
     const bottlenecks = f.bottlenecks ? (item[f.bottlenecks] || []).map(b => ({ process: b[f.bottleneckProcess] || '', pct: Number(b[f.bottleneckPct]) || 0 })) : [];
     return {
       id: lineId, name: item[f.name] || lineId, floor, target: Number(item[f.target]) || 0,
       actual, workers: f.workers ? Number(item[f.workers]) || 0 : 0, hourly,
+      workHours: [...workHourSet],
       defectRate, defectCount: f.defectCount ? Number(item[f.defectCount]) || 0 : 0,
       bottlenecks, isHelper: API_CONFIG.helperLineIds.includes(lineId),
     };
@@ -988,16 +998,20 @@ function renderChart(l) {
   if (parent.offsetWidth === 0) { requestAnimationFrame(() => renderChart(l)); return; }
   const labels = l.hourly.map(h => h.hour);
   const data = l.hourly.map(h => h.count);
-  const hTarget = l.target > 0 ? l.target / 9 : 0;
+  const workHourSet = new Set(l.workHours || []);
+  // 시간당 목표 = 일별 목표 ÷ 근무 시간 수(API가 반환한 시간대 수)
+  const workCount = workHourSet.size || 9;
+  const hTarget = l.target > 0 ? l.target / workCount : 0;
   const colors = data.map((c, i) => {
-    if (c === null) return '#E2E8F0';
-    if (labels[i] === '12') return '#CBD5E1';
+    // 생산량이 0인 시간대(비근무 포함)는 회색
+    if (!c) return '#E2E8F0';
     if (hTarget === 0) return '#0EA5E9';
     const rr = c / hTarget;
     return rr >= 0.85 ? '#0EA5E9' : rr >= 0.6 ? '#0D9488' : '#0C4A6E';
   });
-  const datasets = [{ label: '실적', data: data.map(d => d === null ? 0 : d), backgroundColor: colors, borderRadius: 3, borderSkipped: false }];
-  if (hTarget > 0) datasets.push({ label: '목표', type: 'line', data: labels.map((lab, i) => lab === '12' ? null : (l.hourly[i].count === null ? null : hTarget)), borderColor: '#94A3B8', borderDash: [4,4], borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0, spanGaps: false });
+  const datasets = [{ label: '실적', data, backgroundColor: colors, borderRadius: 3, borderSkipped: false }];
+  // 목표선은 근무 시간대에만 표시
+  if (hTarget > 0) datasets.push({ label: '목표', type: 'line', data: labels.map(lab => workHourSet.has(lab) ? hTarget : null), borderColor: '#94A3B8', borderDash: [4,4], borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0, spanGaps: false });
   if (chart) { chart.destroy(); chart = null; }
   chart = new Chart(canvas, {
     type: 'bar', data: { labels, datasets },
